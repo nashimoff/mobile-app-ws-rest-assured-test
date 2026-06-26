@@ -2,12 +2,16 @@ package com.appsdeveloperblog.app.ws.restassuredtest;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,5 +63,20 @@ class TestCreateUser {
 
 		String userId = response.jsonPath().getString("userId");
 		assertNotNull(userId);
+		
+		String bodyString = response.body().asString();
+		try {
+			JSONObject responseBodyJson = new JSONObject(bodyString);
+			JSONArray addresses = responseBodyJson.getJSONArray("addresses");
+			
+			assertNotNull(addresses);
+			assertTrue(addresses.length() == 1);
+			
+			String addressId = addresses.getJSONObject(0).getString("addressesId");
+			
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
