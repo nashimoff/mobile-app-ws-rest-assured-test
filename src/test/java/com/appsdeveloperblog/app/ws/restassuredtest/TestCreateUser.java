@@ -3,6 +3,7 @@ package com.appsdeveloperblog.app.ws.restassuredtest;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +41,15 @@ class TestCreateUser {
 		shippingAddress.put("postalCode", "123456");
 		shippingAddress.put("type", "shipping");
 
+		Map<String, Object> billingAddress = new HashMap<>();
+		billingAddress.put("city", "Vancouver");
+		billingAddress.put("country", "Canada");
+		billingAddress.put("streetName", "123 Street name");
+		billingAddress.put("postalCode", "123456");
+		billingAddress.put("type", "billing");
+		
 		userAddresses.add(shippingAddress);
+		userAddresses.add(billingAddress);
 
 		Map<String, Object> userDetails = new HashMap<>();
 		userDetails.put("firstName", "Sergey");
@@ -63,6 +72,7 @@ class TestCreateUser {
 
 		String userId = response.jsonPath().getString("userId");
 		assertNotNull(userId);
+		assertTrue(userId.length() == 30);
 		
 		String bodyString = response.body().asString();
 		try {
@@ -70,13 +80,14 @@ class TestCreateUser {
 			JSONArray addresses = responseBodyJson.getJSONArray("addresses");
 			
 			assertNotNull(addresses);
-			assertTrue(addresses.length() == 1);
+			assertTrue(addresses.length() == 2);
 			
-			String addressId = addresses.getJSONObject(0).getString("addressesId");
+			String addressId = addresses.getJSONObject(0).getString("addressId");
+			assertNotNull(addressId);
+			assertTrue(addressId.length() == 30);
 			
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			fail(e.getMessage());
 		}
 	}
 }
