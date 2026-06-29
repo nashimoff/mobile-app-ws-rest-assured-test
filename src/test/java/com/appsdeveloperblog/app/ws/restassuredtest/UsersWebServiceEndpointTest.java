@@ -1,9 +1,12 @@
 package com.appsdeveloperblog.app.ws.restassuredtest;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +24,8 @@ class UsersWebServiceEndpointTest {
 	private final String CONTEXT_PATH = "/mobile-app-ws";
 	private final String EMAIL_ADDRESS = "sergey.kargopolov@swiftdeveloperblog.com";
 	private final String JSON = "application/json";
+	private static String authorizationHeader;
+	private static String userId;
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -33,7 +38,7 @@ class UsersWebServiceEndpointTest {
 	 */
 
 	@Test
-	void a() {
+	final void a() {
 		Map<String, String> loginDetails = new HashMap<>();
 		loginDetails.put("email", EMAIL_ADDRESS);
 		loginDetails.put("password", "123");
@@ -47,12 +52,75 @@ class UsersWebServiceEndpointTest {
 		then().
 		statusCode(200).extract().response();
 		
-		String authorizationHeader = response.header("Authorization");
-		String UserId = response.header("UserID");
+		authorizationHeader = response.header("Authorization");
+		userId = response.header("UserID");
 		
 		assertNotNull(authorizationHeader);
-		assertNotNull(UserId);
+		assertNotNull(userId);
 		
 		}
+	
+	/*
+	 * testGetUserDetails
+	 */
+
+	@Test
+	final void b() {
+		
+		Response response = given()
+				.pathParam("id", userId)
+				.header("Authorization",authorizationHeader)
+		.accept(JSON)
+		.when().get(CONTEXT_PATH + "/users/{id}")
+		.then()
+		.statusCode(200)
+		.contentType(JSON)
+		.extract()
+		.response();
+		
+		System.out.println(response.body().asString()); 
+		System.out.println("JSON RESPONSE: " + response.body().asString());
+		String userPublicId = response.jsonPath().getString("userId");
+		String userEmail = response.jsonPath().getString("email");
+		String firstName = response.jsonPath().getString("firstName");
+		String lastName = response.jsonPath().getString("lastName");
+		List<Map<String, String>> addresses = response.jsonPath().getList("addresses");
+		String addressId = addresses.get(0).get("addressId");
+		
+		assertNotNull(userPublicId);
+		assertNotNull(userEmail);
+		assertNotNull(firstName);
+		assertNotNull(lastName);
+		assertEquals(EMAIL_ADDRESS, userEmail);
+		
+		assertTrue(addresses.size() == 2);
+		assertTrue(addressId.length() == 30);
+		
+	}
+	
+	/*
+	 * Test Update User Details
+	 */
+	@Test
+	final void c()
+	{
+		Map<String, Object> userDetails = new HashMap<>();
+		userDetails.put("firstName", "Serge");
+		userDetails.put("lastName", "Kargopolov");
+		
+		Response response = given()
+		.contentType(JSON)
+		.accept(JSON)
+		.header("Authorization",authorizationHeader)
+		.pathParam("id", userId)
+		.body(userDetails)
+		.when()
+		.put(CONTEXT_PATH + "/users/{id}")
+		.then()
+		.statusCode(200)
+		.contentType(JSON)
+		.extract()
+		.response();
+	}
 
 }
