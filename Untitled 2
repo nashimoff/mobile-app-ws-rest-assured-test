@@ -17,6 +17,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
+//@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class UsersWebServiceEndpointTest {
 
@@ -36,6 +37,7 @@ class UsersWebServiceEndpointTest {
     /*
      * testUserLogin
      */
+
     @Test
     final void a() {
         Map<String, String> loginDetails = new HashMap<>();
@@ -56,17 +58,19 @@ class UsersWebServiceEndpointTest {
 
         assertNotNull(authorizationHeader);
         assertNotNull(userId);
-    }
+
+        }
 
     /*
      * testGetUserDetails
      */
+
     @Test
     final void b() {
 
         Response response = given()
                 .pathParam("id", userId)
-                .header("Authorization", authorizationHeader)
+                .header("Authorization",authorizationHeader)
         .accept(JSON)
         .when().get(CONTEXT_PATH + "/users/{id}")
         .then()
@@ -75,8 +79,8 @@ class UsersWebServiceEndpointTest {
         .extract()
         .response();
 
-        System.out.println("GET JSON RESPONSE: " + response.body().asString());
-
+        System.out.println(response.body().asString());
+        System.out.println("JSON RESPONSE: " + response.body().asString());
         String userPublicId = response.jsonPath().getString("userId");
         String userEmail = response.jsonPath().getString("email");
         String firstName = response.jsonPath().getString("firstName");
@@ -92,13 +96,15 @@ class UsersWebServiceEndpointTest {
 
         assertTrue(addresses.size() == 2);
         assertTrue(addressId.length() == 30);
+
     }
 
     /*
      * Test Update User Details
      */
     @Test
-    final void c() {
+    final void c()
+    {
         Map<String, Object> userDetails = new HashMap<>();
         userDetails.put("firstName", "Serge");
         userDetails.put("lastName", "Kargopolov");
@@ -106,7 +112,7 @@ class UsersWebServiceEndpointTest {
         Response response = given()
         .contentType(JSON)
         .accept(JSON)
-        .header("Authorization", authorizationHeader)
+        .header("Authorization",authorizationHeader)
         .pathParam("id", userId)
         .body(userDetails)
         .when()
@@ -117,18 +123,16 @@ class UsersWebServiceEndpointTest {
         .extract()
         .response();
 
-        System.out.println("PUT RAW RESPONSE: " + response.body().asString());
-        System.out.println("PUT RAW RESPONSE: " + response.body().asString());
-
         String firstName = response.jsonPath().getString("firstName");
         String lastName = response.jsonPath().getString("lastName");
+
         List<Map<String, String>> storedAddresses = response.jsonPath().getList("addresses");
 
         assertEquals("Serge", firstName);
         assertEquals("Kargopolov", lastName);
         assertNotNull(storedAddresses);
         assertTrue(addresses.size() == storedAddresses.size());
-        assertEquals(addresses.get(0).get("streetName"), storedAddresses.get(0).get("streetName"));
+        assertEquals(addresses.get(0).get("streetName"), addresses.get(0).get("streetName"));
     }
 
 }
